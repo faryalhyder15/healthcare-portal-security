@@ -1,0 +1,118 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>HealthCare Portal (Vulnerable)</title>
+    <style>
+        body { font-family: Arial; max-width: 900px; margin: 20px auto; padding: 20px; }
+        .card { border: 1px solid #ccc; padding: 15px; margin: 10px 0; border-radius: 6px; }
+        input, button { padding: 8px; margin: 4px; }
+        .danger { background: #ffdddd; padding: 8px; border-left: 4px solid red; }
+    </style>
+</head>
+<body>
+    <h1>HealthCare Portal - <span style="color:red">VULNERABLE</span></h1>
+    <div class="danger">Intentionally insecure for educational purposes.</div>
+
+    <div class="card">
+        <h2>Login</h2>
+        <input id="username" placeholder="Username" />
+        <input id="password" placeholder="Password" type="password" />
+        <button onclick="login()">Login</button>
+        <div id="loginResult"></div>
+    </div>
+
+    <div class="card">
+        <h2>Greeting (Reflected XSS Demo)</h2>
+        <input id="greetName" placeholder="Enter name" />
+        <button onclick="greet()">Greet</button>
+        <div id="greetBox"></div>
+    </div>
+
+    <div class="card">
+        <h2>Search Patients</h2>
+        <input id="searchName" placeholder="Patient name" />
+        <button onclick="searchPatients()">Search</button>
+        <div id="searchResults"></div>
+    </div>
+
+    <div class="card">
+        <h2>Patient Comments</h2>
+        <input id="commentUser" placeholder="Your user ID" />
+        <input id="commentContent" placeholder="Comment" size="50" />
+        <button onclick="postComment()">Post</button>
+        <div id="commentsBox"></div>
+    </div>
+
+    <div class="card">
+        <h2>Change Email</h2>
+        <input id="newEmail" placeholder="new@email.com" />
+        <button onclick="changeEmail()">Update</button>
+        <div id="emailResult"></div>
+    </div>
+
+    <div class="card">
+        <h2>Notes (DOM-based XSS Demo)</h2>
+        <input id="noteInput" placeholder="Add note" />
+        <button onclick="addNote()">Add</button>
+        <div id="notesBox"></div>
+    </div>
+
+<script>
+window.addEventListener('load', () => {
+    const hash = decodeURIComponent(location.hash.substring(1));
+    if (hash) document.getElementById('notesBox').innerHTML = '<p>' + hash + '</p>';
+});
+
+function login() {
+    fetch('/api/login', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({username: username.value, password: password.value})
+    }).then(r => r.json()).then(d => loginResult.innerText = JSON.stringify(d));
+}
+
+function greet() {
+    fetch('/api/greet?name=' + greetName.value)
+        .then(r => r.text())
+        .then(html => greetBox.innerHTML = html);
+}
+
+function searchPatients() {
+    fetch('/api/patients/search?name=' + encodeURIComponent(searchName.value))
+        .then(r => r.json()).then(d => {
+            searchResults.innerHTML = d.map(p =>
+                '<div>ID: ' + p.id + ' | ' + p.full_name + ' | ' + p.diagnosis + '</div>'
+            ).join('');
+        });
+}
+
+function postComment() {
+    fetch('/api/comments', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({user_id: commentUser.value, content: commentContent.value})
+    }).then(() => loadComments());
+}
+
+function loadComments() {
+    fetch('/api/comments').then(r => r.json()).then(d => {
+        commentsBox.innerHTML = d.map(c =>
+            '<div class="card"><b>' + c.username + ':</b> ' + c.content + '</div>'
+        ).join('');
+    });
+}
+
+function changeEmail() {
+    fetch('/api/change-email', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        credentials: 'include',
+        body: JSON.stringify({email: newEmail.value})
+    }).then(r => r.json()).then(d => emailResult.innerText = JSON.stringify(d));
+}
+
+function addNote() {
+    notesBox.innerHTML += '<p>' + noteInput.value + '</p>';
+}
+
+loadComments();
+</script>
+</body>
+</html>

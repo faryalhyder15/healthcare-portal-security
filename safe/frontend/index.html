@@ -1,0 +1,144 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>HealthCare Portal (Safe)</title>
+    <style>
+        body { font-family: Arial; max-width: 900px; margin: 20px auto; padding: 20px; }
+        .card { border: 1px solid #ccc; padding: 15px; margin: 10px 0; border-radius: 6px; }
+        input, button { padding: 8px; margin: 4px; }
+        .safe { background: #ddffdd; padding: 8px; border-left: 4px solid green; }
+    </style>
+</head>
+<body>
+    <h1>HealthCare Portal - <span style="color:green">SAFE</span></h1>
+    <div class="safe">Hardened version with all defenses enabled.</div>
+
+    <div class="card">
+        <h2>Login</h2>
+        <input id="username" placeholder="Username" />
+        <input id="password" placeholder="Password" type="password" />
+        <button onclick="login()">Login</button>
+        <div id="loginResult"></div>
+    </div>
+
+    <div class="card">
+        <h2>Greeting</h2>
+        <input id="greetName" placeholder="Enter name" />
+        <button onclick="greet()">Greet</button>
+        <div id="greetBox"></div>
+    </div>
+
+    <div class="card">
+        <h2>Search Patients</h2>
+        <input id="searchName" placeholder="Patient name" />
+        <button onclick="searchPatients()">Search</button>
+        <div id="searchResults"></div>
+    </div>
+
+    <div class="card">
+        <h2>Patient Comments</h2>
+        <input id="commentUser" placeholder="Your user ID" />
+        <input id="commentContent" placeholder="Comment" size="50" />
+        <button onclick="postComment()">Post</button>
+        <div id="commentsBox"></div>
+    </div>
+
+    <div class="card">
+        <h2>Change Email (CSRF Protected)</h2>
+        <input id="newEmail" placeholder="new@email.com" />
+        <button onclick="changeEmail()">Update</button>
+        <div id="emailResult"></div>
+    </div>
+
+    <div class="card">
+        <h2>Notes (Safe)</h2>
+        <input id="noteInput" placeholder="Add note" />
+        <button onclick="addNote()">Add</button>
+        <div id="notesBox"></div>
+    </div>
+
+<script>
+var CSRF_TOKEN = '';
+
+fetch('/api/csrf-token')
+  .then(r => r.json())
+  .then(d => { CSRF_TOKEN = d.csrfToken; console.log('CSRF token loaded:', CSRF_TOKEN); })
+  .catch(e => console.error('CSRF fetch failed:', e));
+window.addEventListener('load', () => {
+    const hash = decodeURIComponent(location.hash.substring(1));
+    if (hash) {
+        const p = document.createElement('p');
+        p.textContent = hash;
+        document.getElementById('notesBox').appendChild(p);
+    }
+});
+
+function login() {
+    fetch('/api/login', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({username: username.value, password: password.value})
+    }).then(r => r.json()).then(d => loginResult.innerText = JSON.stringify(d));
+}
+
+function greet() {
+    fetch('/api/greet?name=' + encodeURIComponent(greetName.value))
+        .then(r => r.text())
+        .then(html => { greetBox.textContent = html.replace(/<[^>]+>/g, ''); });
+}
+
+function searchPatients() {
+    fetch('/api/patients/search?name=' + encodeURIComponent(searchName.value))
+        .then(r => r.json()).then(d => {
+            searchResults.innerHTML = '';
+            d.forEach(p => {
+                const div = document.createElement('div');
+                div.textContent = 'ID: ' + p.id + ' | ' + p.full_name + ' | ' + p.diagnosis;
+                searchResults.appendChild(div);
+            });
+        });
+}
+
+function postComment() {
+    fetch('/api/comments', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({user_id: commentUser.value, content: commentContent.value})
+    }).then(() => loadComments());
+}
+
+function loadComments() {
+    fetch('/api/comments').then(r => r.json()).then(d => {
+        commentsBox.innerHTML = '';
+        d.forEach(c => {
+            const div = document.createElement('div');
+            div.className = 'card';
+            const b = document.createElement('b');
+            b.textContent = c.username + ': ';
+            div.appendChild(b);
+            div.appendChild(document.createTextNode(c.content));
+            commentsBox.appendChild(div);
+        });
+    });
+}
+
+function changeEmail() {
+    fetch('/api/change-email', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'CSRF-Token': CSRF_TOKEN
+        },
+        credentials: 'include',
+        body: JSON.stringify({ email: newEmail.value })
+    }).then(r => r.json()).then(d => emailResult.innerText = JSON.stringify(d));
+}
+
+function addNote() {
+    const p = document.createElement('p');
+    p.textContent = noteInput.value;
+    notesBox.appendChild(p);
+}
+
+loadComments();
+</script>
+</body>
+</html>

