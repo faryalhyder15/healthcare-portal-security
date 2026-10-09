@@ -13,7 +13,7 @@ Demonstrates 7 real web vulnerabilities and their fixes in two switchable versio
 - `vulnerable/`  intentionally insecure version (port 3001)
 - `safe/`  hardened version (port 3002)
 - `schema.sql`  database schema and seed data
-- `evidence/`  payloads and screenshots
+- `evidence/`  payloads
 
 ## How to Run
 
