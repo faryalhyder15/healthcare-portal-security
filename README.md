@@ -10,10 +10,10 @@ Demonstrates 7 real web vulnerabilities and their fixes in two switchable versio
 - Vanilla HTML/CSS/JS frontend
 
 ## Folder Structure
-- `vulnerable/` â€” intentionally insecure version (port 3001)
-- `safe/` â€” hardened version (port 3002)
-- `schema.sql` â€” database schema and seed data
-- `evidence/` â€” payloads and screenshots
+- `vulnerable/`  intentionally insecure version (port 3001)
+- `safe/`  hardened version (port 3002)
+- `schema.sql`  database schema and seed data
+- `evidence/`  payloads and screenshots
 
 ## How to Run
 
