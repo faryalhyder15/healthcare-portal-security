@@ -1,4 +1,4 @@
-﻿# Healthcare Portal â€” Blue Team Security Project
+﻿# Healthcare Portal Blue Team Security Project
 
 ## Use Case
 A healthcare portal where patients log in, search records, post comments, and update their email.
